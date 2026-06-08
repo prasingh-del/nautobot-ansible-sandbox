@@ -1,0 +1,66 @@
+---
+- name: Generate Junos interface config from Nautobot
+  hosts: juniper_routers
+  gather_facts: false
+
+  vars:
+    nautobot_url: "http://localhost:8080"
+    nautobot_token: "0123456789abcdef0123456789abcdef01234567"
+    nautobot_headers:
+      Authorization: "Token {{ nautobot_token }}"
+      Accept: "application/json"
+
+  tasks:
+    - name: Fetch interface from Nautobot
+      ansible.builtin.uri:
+        url: "{{ nautobot_url }}/api/dcim/interfaces/?device={{ nautobot_device_name }}&name={{ target_interface | urlencode }}"
+        method: GET
+        headers: "{{ nautobot_headers }}"
+        return_content: true
+        status_code: 200
+      register: iface_resp
+      delegate_to: localhost
+
+    - name: Ensure interface was found
+      ansible.builtin.assert:
+        that:
+          - iface_resp.json.results | length > 0
+        fail_msg: "Interface {{ target_interface }} not found in Nautobot."
+
+    - name: Save interface facts
+      ansible.builtin.set_fact:
+        iface: "{{ iface_resp.json.results[0] }}"
+
+    - name: Fetch IP address assigned to interface
+      ansible.builtin.uri:
+        url: "{{ nautobot_url }}/api/ipam/ip-addresses/?interfaces={{ iface.id }}"
+        method: GET
+        headers: "{{ nautobot_headers }}"
+        return_content: true
+        status_code: 200
+      register: ip_resp
+      delegate_to: localhost
+
+    - name: Save IP address
+      ansible.builtin.set_fact:
+        iface_ip_address: "{{ ip_resp.json.results[0].address }}"
+
+    - name: Show data pulled from Nautobot
+      ansible.builtin.debug:
+        msg:
+          - "Device: {{ nautobot_device_name }}"
+          - "Interface: {{ iface.name }}"
+          - "MTU: {{ iface.mtu }}"
+          - "IP: {{ iface_ip_address }}"
+
+    - name: Render Junos config
+      ansible.builtin.template:
+        src: templates/junos_interface.j2
+        dest: "{{ playbook_dir }}/compiled_config.txt"
+        mode: "0644"
+      vars:
+        device_name: "{{ nautobot_device_name }}"
+        iface_name: "{{ iface.name }}"
+        iface_mtu: "{{ iface.mtu }}"
+        iface_ip: "{{ iface_ip_address }}"
+      delegate_to: localhost

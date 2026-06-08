@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+compiled_config.txt
+*.retry
+.DS_Store
+.venv/
+__pycache__/
+*.pyc
+compiled_config.txt
+*.retry

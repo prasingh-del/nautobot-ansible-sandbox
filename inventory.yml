@@ -1,0 +1,8 @@
+all:
+  children:
+    juniper_routers:
+      hosts:
+        fc01rt01:
+          ansible_connection: local
+          nautobot_device_name: fc01rt01
+          target_interface: et-0/0/1

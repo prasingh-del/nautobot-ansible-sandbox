@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nautobot
+      POSTGRES_USER: nautobot
+      POSTGRES_PASSWORD: nautobotpass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nautobot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nautobot:
+    image: networktocode/nautobot-lab:latest
+    platform: linux/amd64
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NAUTOBOT_DB_HOST: postgres
+      NAUTOBOT_DB_NAME: nautobot
+      NAUTOBOT_DB_USER: nautobot
+      NAUTOBOT_DB_PASSWORD: nautobotpass
+      NAUTOBOT_REDIS_HOST: redis
+      NAUTOBOT_REDIS_PORT: "6379"
+      NAUTOBOT_ALLOWED_HOSTS: "*"
+      NAUTOBOT_SECRET_KEY: "local-sandbox-not-for-production-change-me"
+      NAUTOBOT_SUPERUSER_NAME: admin
+      NAUTOBOT_SUPERUSER_EMAIL: admin@example.com
+      NAUTOBOT_SUPERUSER_PASSWORD: admin
+      NAUTOBOT_SUPERUSER_API_TOKEN: "0123456789abcdef0123456789abcdef01234567"
+      NAUTOBOT_CREATE_SUPERUSER: "true"
+    ports:
+      - "8080:8000"
+
+  celery-worker:
+    image: networktocode/nautobot-lab:latest
+    platform: linux/amd64
+    entrypoint: ["nautobot-server", "celery", "worker", "--loglevel", "INFO"]
+    depends_on:
+      nautobot:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    environment:
+      NAUTOBOT_DB_HOST: postgres
+      NAUTOBOT_DB_NAME: nautobot
+      NAUTOBOT_DB_USER: nautobot
+      NAUTOBOT_DB_PASSWORD: nautobotpass
+      NAUTOBOT_REDIS_HOST: redis
+      NAUTOBOT_REDIS_PORT: "6379"
+      NAUTOBOT_ALLOWED_HOSTS: "*"
+      NAUTOBOT_SECRET_KEY: "local-sandbox-not-for-production-change-me"
+
+volumes:
+  pgdata: {}
+
+networks:
+  default:
+    name: nautobot-ansible-sandbox
+    ipam:
+      config:
+        - subnet: 172.31.240.0/24
