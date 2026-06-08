@@ -129,8 +129,28 @@ Suggested manual test object:
 
 ## GitHub Status
 
-GitHub CLI (`gh`) is not installed yet. To connect GitHub later, install it and
-authenticate:
+GitHub CLI (`gh`) is not installed yet.
+
+A local Git repository was initialized and the first commit was created:
+
+```text
+Initial Nautobot Ansible sandbox
+```
+
+The GitHub remote is configured:
+
+```text
+https://github.com/prasingh-del/nautobot-ansible-sandbox.git
+```
+
+The push is pending because terminal authentication is still needed. From your
+interactive terminal, run:
+
+```bash
+git push -u origin main
+```
+
+If you want to use GitHub CLI later, install it and authenticate:
 
 ```bash
 brew install gh
