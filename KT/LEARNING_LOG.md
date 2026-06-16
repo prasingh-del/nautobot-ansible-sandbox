@@ -131,9 +131,10 @@ Suggested manual test object:
 
 GitHub CLI (`gh`) is not installed yet.
 
-A local Git repository was initialized and the first commit was created:
+A local Git repository was initialized and commits were created:
 
 ```text
+Document GitHub push status
 Initial Nautobot Ansible sandbox
 ```
 
@@ -143,12 +144,8 @@ The GitHub remote is configured:
 https://github.com/prasingh-del/nautobot-ansible-sandbox.git
 ```
 
-The push is pending because terminal authentication is still needed. From your
-interactive terminal, run:
-
-```bash
-git push -u origin main
-```
+The project was pushed successfully to GitHub after creating a valid Personal
+Access Token and authenticating from the terminal.
 
 If you want to use GitHub CLI later, install it and authenticate:
 

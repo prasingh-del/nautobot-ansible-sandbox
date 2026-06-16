@@ -1,0 +1,15 @@
+---
+# Inventory for the REAL MX204 test device (read-only use).
+# Credentials are read from environment variables (source .env.local first).
+all:
+  children:
+    mx204_test:
+      hosts:
+        mx204lab:
+          ansible_host: "{{ lookup('ansible.builtin.env', 'MX204_HOST') }}"
+      vars:
+        ansible_connection: ansible.netcommon.network_cli
+        ansible_network_os: junipernetworks.junos.junos
+        ansible_user: "{{ lookup('ansible.builtin.env', 'MX204_USER') }}"
+        ansible_password: "{{ lookup('ansible.builtin.env', 'MX204_PASSWORD') }}"
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"

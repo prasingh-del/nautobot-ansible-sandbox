@@ -1,0 +1,45 @@
+---
+# READ-ONLY MX204 show-command collection over plain SSH (network_cli).
+# Uses generic cli_command (no NETCONF needed). No config changes are made.
+- name: MX204 read-only show commands
+  hosts: mx204_test
+  gather_facts: false
+  vars:
+    out_dir: "{{ playbook_dir }}/mx204_output"
+
+  tasks:
+    - name: Ensure output directory exists
+      ansible.builtin.file:
+        path: "{{ out_dir }}"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+
+    - name: Run read-only show commands
+      ansible.netcommon.cli_command:
+        command: "{{ item }}"
+      register: cli
+      loop:
+        - show version
+        - show chassis hardware
+        - show interfaces terse
+        - show configuration interfaces | display set
+
+    - name: Save each command output to a file
+      ansible.builtin.copy:
+        content: "{{ cli.results[idx].stdout }}"
+        dest: "{{ out_dir }}/{{ fname }}.txt"
+        mode: "0644"
+      loop:
+        - version
+        - chassis_hardware
+        - interfaces_terse
+        - config_interfaces_set
+      loop_control:
+        index_var: idx
+        loop_var: fname
+      delegate_to: localhost
+
+    - name: Confirm collection
+      ansible.builtin.debug:
+        msg: "Saved show outputs to {{ out_dir }} ({{ cli.results | length }} commands)."

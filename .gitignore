@@ -1,11 +1,23 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
-compiled_config.txt
+
+# Secrets (NEVER commit)
+.env.local
+gmail_client_secret.json
+.gmail_token.json
+
+# Ansible runtime
 *.retry
+.ansible_tmp/
+.ansible_home/
+
+# Generated sandbox output
+compiled_config.txt
+
+# Live device output (may contain serials) — keep local only
+mx204_output/
+
+# OS
 .DS_Store
-.venv/
-__pycache__/
-*.pyc
-compiled_config.txt
-*.retry
